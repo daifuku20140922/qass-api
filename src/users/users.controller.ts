@@ -7,64 +7,95 @@ import {
   Param,
   Delete,
   Query,
+  HttpException,
+  HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { UserStatus } from './vo/userStatus.vo';
+import { FindUserByIdDto } from 'src/users/dto/find-user-by-id.dto';
+import { FindUserByConditionDto } from 'src/users/dto/find-user-by-condition.dto';
+import { UsersCommandUsecase } from 'src/users/usecases/user.command.usecase';
+import { ApiTags } from '@nestjs/swagger';
+import { UsersQueryUsecase } from 'src/users/usecases/user.query.usecase';
 
-@Controller('users')
+@Controller('v1/users')
 @ApiTags('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly queryUsecase: UsersQueryUsecase,
+    private readonly commandUsecase: UsersCommandUsecase,
+  ) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
-
-  @ApiQuery({ name: 'department', required: false, type: String })
-  @ApiQuery({ name: 'id', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, type: String })
   @Get()
-  find(
-    @Query('department') department: string,
-    @Query('id') id: number,
-    @Query('status') status: string,
-  ) {
-    if (department) {
-      return this.usersService.findByDepartment(department);
-    }
-    if (id) {
-      return this.usersService.findOne(+id);
-    }
-    if (status) {
-      switch (status) {
-        case UserStatus.Enrolled:
-          return this.usersService.findByStatus(status);
-        case UserStatus.Retired:
-          return this.usersService.findByStatus(status);
-        case UserStatus.Suspended:
-          return this.usersService.findByStatus(status);
-        //StatusQueryParamが不正な場合はfindAllメソッドを呼ぶか空で返すか悩ましい
-      }
-    }
-    return this.usersService.findAll();
+  find(@Query() input: FindUserByConditionDto) {
+    return this.queryUsecase.usersByCondition(input);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    const input = new FindUserByIdDto(id);
+    return this.queryUsecase.userByUniqueKey(input);
+  }
+
+  @Post()
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.commandUsecase
+      .create(createUserDto)
+      .then((res) => res)
+      .catch((e) => {
+        throw new HttpException(
+          {
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: e.message,
+            error: 'InternalServerError',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          {
+            cause: e,
+          },
+        );
+      });
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    try {
+      return await this.commandUsecase.update(+id, updateUserDto);
+    } catch (e: any) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: e.message,
+          error: 'InternalServerError',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          cause: e,
+        },
+      );
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string) {
+    try {
+      return await this.commandUsecase.delete(+id);
+    } catch (e: any) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: e.message,
+          error: 'InternalServerError',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          cause: e,
+        },
+      );
+    }
   }
 }

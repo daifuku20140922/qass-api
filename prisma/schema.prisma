@@ -11,49 +11,59 @@ datasource db {
 }
 
 model User {
-  id              Int             @id @unique
-  qrImagePath     String?
-  department      String?
-  name            String
-  status          String          @default("enrolled")
-  password        String          @default("everlife")
-  rentalHistories RentalHistory[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id          Int        @id @unique
+  qrImagePath String?    @unique
+  department  String?
+  name        String
+  status      UserStatus @default(enrolled)
+  password    String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  items       Asset[]
 }
 
-model Asset {
-  id              Int             @id @unique @default(autoincrement())
-  qrImagePath     String?
-  categoryId      Int
-  simId           String?
-  note            String?
-  userId          Int?
-  status          String          @default("inActive")
-  rentalHistories RentalHistory[]
-  buyDate         DateTime?       @default(now())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+enum UserStatus {
+  enrolled
+  retired
+  suspended
 }
 
-model Category {
-  id          Int      @id @unique @default(autoincrement())
+model Product {
+  id          String   @id @unique
   name        String
   maker       String?
   imagePath   String?
   model       String?
-  accessories String[]
   note        String?
+  category    String
+  accessories String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  Asset       Asset[]
 }
 
-model RentalHistory {
-  id      Int      @id @unique @default(autoincrement())
-  userId  Int
-  assetId Int
-  status  String
-  date    DateTime @default(now())
-  User    User     @relation(fields: [userId], references: [id])
-  Asset   Asset    @relation(fields: [assetId], references: [id])
+enum ProdutCategory {
+  laptop
+  mobilePhone
+  mobileRouter
+}
+
+model Asset {
+  id          String      @id @unique
+  qrImagePath String?
+  productId   String
+  product     Product     @relation(fields: [productId], references: [id])
+  simId       String?
+  note        String?
+  status      AssetStatus @default(inActive)
+  buyDate     DateTime
+  userId      Int?
+  user        User?       @relation(fields: [userId], references: [id])
+}
+
+enum AssetStatus {
+  active
+  inActive
+  broken
+  maintenance
 }

@@ -1,0 +1,83 @@
+@startuml Entity Definition
+!include skin.pu
+' !include users.pu
+' !include assets.pu
+
+entity User {
+  id: number
+  qrImagePath?: string
+  name: string
+  department: string
+  status: UserStatus
+  password: string
+  items: Asset[]
+}
+
+enum UserStatus {
+  enrolled
+  retired
+  suspended
+}
+
+entity Asset {
+  id: string
+  qrImagePath?: string
+  categoryId: string
+  category: Category
+  simId: string
+  note: string
+  userId?: number
+  user?: User
+  status: AssetStatus
+  buyDate?: date
+}
+
+enum AssetStatus {
+  active
+  inActive
+  broken
+  maintenance
+}
+
+entity Category {
+  id: string
+  name: string
+  maker?: string
+  imagePath?: string
+  model?: string
+  note?: string
+  accessories: Accessory[]
+}
+
+entity Product {
+  id: string
+  name: string
+  maker?: string
+  model?: string
+  category: string
+  imagePath?: string
+  note?: string
+  accessories: Accessory[]
+}
+
+entity Accessory {
+  categoryId: string
+  name: string
+}
+
+' User rely UserStatus
+User --> UserStatus
+
+'Asset rely AssetStatus
+Asset --> AssetStatus
+
+' Asset belongs to Category
+Asset }o-r-|| Category
+
+' User has many Asset
+Asset }o-l-o| User
+
+' Category has many Accessory
+Category |o--o{ Accessory
+
+@enduml

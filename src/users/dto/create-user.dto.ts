@@ -1,23 +1,49 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../entities/user.entity';
-import { UserStatus } from 'src/users/vo/userStatus.vo';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
+
+import { UserStatus } from 'src/users/entities/user.status';
 
 export class CreateUserDto {
   @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1000000)
+  @Max(9999999)
   id: number;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
   qrImagePath?: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
   department?: string;
 
   @ApiProperty()
-  name: string;
-
-  @ApiProperty({ required: false, default: UserStatus.Enrolled })
-  status?: UserStatus;
-
-  @ApiProperty({ required: false, default: 'everlife' })
+  @IsOptional()
+  @IsString()
   password?: string;
+
+  @ApiProperty({
+    enum: UserStatus,
+    example: UserStatus.Enrolled,
+  })
+  @IsOptional()
+  @IsEnum(UserStatus)
+  status?: UserStatus;
 }

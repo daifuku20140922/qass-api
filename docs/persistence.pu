@@ -1,0 +1,17 @@
+@startuml Persistence
+
+interface IRepository<T> {
+    create(entity:T): T
+    update(id: any, entity:T): T
+    delete(id: any)
+}
+
+interface IQueryService<T> {
+    findAll(): T[]
+    findMany(condition: Partial<T>): T[]
+    findOne(condition: Partial<T>): T
+}
+
+class PrismaService extends PrismaClient {}
+
+@enduml

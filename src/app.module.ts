@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from './prisma/prisma.module';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { ProductsModule } from './products/products.module';
 import { AssetsModule } from './assets/assets.module';
-import { CategoriesModule } from './categories/categories.module';
-import { RentalHistoriesModule } from './rental-histories/rental-histories.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AssetsModule, CategoriesModule, RentalHistoriesModule],
+  imports: [
+    ConfigModule.forRoot({ envFilePath: ['.env.development'] }),
+    PrismaModule,
+    UsersModule,
+    ProductsModule,
+    AssetsModule,
+  ],
 })
 export class AppModule {}
