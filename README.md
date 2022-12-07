@@ -9,6 +9,7 @@ QASS is Qrcode based ASset-management System
 - Nest JS
 - Prisma
 - class-validator
+- and Many more...
 
 ## Running the app
 
